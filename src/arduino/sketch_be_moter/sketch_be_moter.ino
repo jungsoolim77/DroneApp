@@ -10,6 +10,9 @@ const int motor2pin1 = 4;
 const int motor2pin2 = 5;
 const int enbA = 9;
 const int enbB = 10;
+const int low = 100;
+const int mid = 150;
+const int high = 220;
 
 
 BLEService ledService("180A"); // BLE LED Service
@@ -55,31 +58,11 @@ void setup() {
 
   Serial.println("BLE LED Peripheral");
   // Serial.println(switchCharacteristic.uuid());
-// initialize pins
-  analogWrite(enbA, 0);
-  analogWrite(enbB, 0);
-  digitalWrite(motor1pin1, HIGH);
-  digitalWrite(motor1pin2, LOW);
-  digitalWrite(motor2pin1, LOW);
-  digitalWrite(motor2pin2, HIGH);
 
 }
 
 void loop() {
-
-  // analogWrite(enbA, 100);
-  // analogWrite(enbB, 200);
-  // digitalWrite(motor1pin1, HIGH);
-  // digitalWrite(motor1pin2, LOW);
-  // digitalWrite(motor2pin1, LOW);
-  // digitalWrite(motor2pin2, HIGH);
-  // delay(3000);
-
-  // digitalWrite(motor1pin1, LOW);
-  // digitalWrite(motor1pin2, HIGH);
-  // digitalWrite(motor2pin1, LOW);
-  // digitalWrite(motor2pin2, HIGH);
-  // delay(1000);
+  
 
   // listen for BLE peripherals to connect:
   BLEDevice central = BLE.central();
@@ -97,42 +80,35 @@ void loop() {
       
       if (switchCharacteristic.written()) {
         Serial.println("received : "); Serial.print(switchCharacteristic.value()); Serial.println("// ");
-        switch (switchCharacteristic.value()) {   // any value other than 0
+        setPins();
+        uint32_t value = switchCharacteristic.value();
+        uint32_t speed = value*20;
+        Serial.println(speed);
+        switch (value) {   
+          case 00:
+            Serial.println("Stop");
+            stopMotor();
+            digitalWrite(ledPin, LOW);
+            break;
           case 01:
-            Serial.println("LED on");
-            digitalWrite(ledPin, HIGH);            // will turn the LED on
-            analogWrite(enbA, 100);
-            analogWrite(enbB, 100);
+            Serial.println("Low Speed");
+            ledBlink(1);       //blink once
+            setSpeed(low);
             break;
           case 02:
-              Serial.println("LED fast blink");
-              digitalWrite(ledPin, HIGH);         // will turn the LED on
-              delay(500);
-              digitalWrite(ledPin, LOW);         // will turn the LED off
-              delay(500);
-              digitalWrite(ledPin, HIGH);      // will turn the LED on
-              delay(500);
-              digitalWrite(LED_BUILTIN, LOW);       // will turn the LED off
-              analogWrite(enbA, 150);
-              analogWrite(enbB, 150);
+            Serial.println("Medium Speed");
+            ledBlink(2);       //blink once
+            setSpeed(mid);  
             break;
           case 03:
-            Serial.println("LED slow blink");
-            digitalWrite(ledPin, HIGH);         // will turn the LED on
-              delay(1000);
-              digitalWrite(ledPin, LOW);         // will turn the LED off
-              delay(1000);
-              digitalWrite(ledPin, HIGH);      // will turn the LED on
-              delay(1000);
-              digitalWrite(ledPin, LOW);       // will turn the LED off
-              analogWrite(enbA, 250);
-              analogWrite(enbB, 250);
+            Serial.println("High Speed");
+            ledBlink(3);       //blink once
+            setSpeed(high); 
             break;
           default:
-            Serial.println(F("LED off"));
-            analogWrite(enbA, 0);
-            analogWrite(enbB, 0);
+            Serial.println(F("LED off"));       //using slider
             digitalWrite(ledPin, LOW);          // will turn the LED off
+            setSpeed(speed); 
             break;
         }
       }
@@ -144,3 +120,33 @@ void loop() {
     digitalWrite(ledPin, LOW);         // will turn the LED off
   }
 }
+void setPins(){
+  digitalWrite(motor1pin1, HIGH);
+  digitalWrite(motor1pin2, LOW);
+  digitalWrite(motor2pin1, LOW);
+  digitalWrite(motor2pin2, HIGH);
+}
+
+void stopMotor(){
+  digitalWrite(motor1pin1, LOW);
+  digitalWrite(motor1pin2, LOW);
+  digitalWrite(motor2pin1, LOW);
+  digitalWrite(motor2pin2, LOW);
+  analogWrite(enbA, 0);
+  analogWrite(enbB, 0);
+}
+
+void setSpeed(int speed){
+  analogWrite(enbA, speed);
+  analogWrite(enbB, speed);
+}
+
+void ledBlink(int times){
+  for(int i=0; i < times; i++){
+    digitalWrite(ledPin, HIGH);         // will turn the LED on
+    delay(1000);
+    digitalWrite(ledPin, LOW);         // will turn the LED off
+    delay(1000);
+  }
+}
+
