@@ -22,7 +22,7 @@ BLEByteCharacteristic switchCharacteristic("2A57", BLERead | BLEWrite);
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
+  // while (!Serial);
 
   // set built in LED pin to output mode
   pinMode(ledPin, OUTPUT);
